@@ -1,27 +1,13 @@
 // BAD PRACTICE - not proper MVC. Should be separated to files.
-const render = function (todos) {
-
-    $("#todos").empty()
-
-    todos.forEach(todo => {
-        $("#todos").append(`
-        <div data-id=${todo._id} class="todo ${todo.complete ? 'complete' : ''}">
-            <i class="fas fa-check-circle"></i>
-            <span class=text>todo.text</span>
-            <span class="delete"><i class="fas fa-trash"></i></span>
-        </div>
-        `)
-    })
-}
-
-const add = function () {
-    $.post('/todo', { text: $("#todo-input").val() }, function (todos) {
+const add = function() {
+    $.post('/todo', { text: $("#todo-input").val() }, function(todos) {
         render(todos)
         $("#todo-input").val("")
     })
 }
 
-$("#todos").on("click", ".fa-check-circle", function () {
+$("#todos").on("click", ".fa-check-circle", function(event) {
+    event.stopPropagation();
     const id = $(this).closest(".todo").data().id
     $.ajax({
         method: "PUT",
@@ -30,7 +16,7 @@ $("#todos").on("click", ".fa-check-circle", function () {
     })
 })
 
-$("#todos").on("click", ".fa-trash", function () {
+$("#todos").on("click", ".fa-trash", function() {
     const id = $(this).closest(".todo").data().id
     $.ajax({
         method: "DELETE",
@@ -39,4 +25,28 @@ $("#todos").on("click", ".fa-trash", function () {
     })
 })
 
-$.get('/todos', todos => render(todos))
+
+$("#todos").on("change", ".slcPriority", function() {
+    const id = $(this).closest(".todo").data().id
+    const prValue = $(this).val()
+    $.ajax({
+        method: "PUT",
+        url: "/todo/" + id + "?pr=" + prValue,
+        success: todos => render(todos)
+    })
+});
+
+$("#todos").on("click", ".todo", function() {
+    const id = $(this).closest(".todo").data().id
+    let prValue = $(this).data().pr;
+    if (parseInt(prValue) === 3) {
+        prValue = 1;
+    } else prValue++;
+    $.ajax({
+        method: "PUT",
+        url: "/todo/" + id + "?pr=" + prValue,
+        success: todos => render(todos)
+    })
+});
+
+$.get('/todos', todos => render(todos));
